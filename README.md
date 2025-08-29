@@ -1,18 +1,18 @@
 # 📊 Time Series Analysis for Public Health - Interactive Presentation
 
-An interactive, self-contained HTML presentation of a workshop on Time Series Analysis. [cite_start]This presentation uses a case study focused on the relationship between air pollution (PM2.5) and Tuberculosis (TB) in Kampala, Uganda, to demonstrate a complete data analysis workflow from initial analysis to policy simulation and recommendation[cite: 161, 218].
+An interactive, self-contained HTML presentation of a workshop on Time Series Analysis. This presentation uses a case study focused on the relationship between air pollution (PM2.5) and Tuberculosis (TB) in Kampala, Uganda, to demonstrate a complete data analysis workflow from initial analysis to policy simulation and recommendation.
 
 ## 📝 Key Topics Covered
 
 The presentation walks through the essential methods and applications of modern time series analysis in the public health sector, including:
 
-- [cite_start]**Context Setting**: Understanding the public health challenge in Kampala concerning air quality and TB[cite: 171, 172, 173, 174].
-- [cite_start]**Interrupted Time Series (ITS) Analysis**: A quasi-experimental design to evaluate the impact of interventions[cite: 99, 219].
-- [cite_start]**Seasonality & Decomposition**: Methods for understanding and handling cyclical patterns in health data[cite: 552, 556, 610].
-- [cite_start]**Time Series Feature Engineering**: Creating derived variables like lags, calendar effects, and rolling statistics to improve model performance[cite: 1, 10, 12].
-- [cite_start]**Forecasting Essentials**: A review of forecasting approaches from naive and statistical methods (ARIMA, Exponential Smoothing) to machine learning models (Random Forest, XGBoost)[cite: 258, 290].
-- [cite_start]**Model Evaluation & Interpretation**: Using metrics like MAE/RMSE and explainability techniques like SHAP and LIME to understand model behavior[cite: 83, 344].
-- [cite_start]**Policy Intervention Simulation**: Using models to forecast the potential health and economic impacts of different policy scenarios[cite: 404, 409, 410].
+- **Context Setting**: Understanding the public health challenge in Kampala concerning air quality and TB.
+- **Interrupted Time Series (ITS) Analysis**: A quasi-experimental design to evaluate the impact of interventions.
+- **Seasonality & Decomposition**: Methods for understanding and handling cyclical patterns in health data.
+- **Time Series Feature Engineering**: Creating derived variables like lags, calendar effects, and rolling statistics to improve model performance.
+- **Forecasting Essentials**: A review of forecasting approaches from naive and statistical methods (ARIMA, Exponential Smoothing) to machine learning models (Random Forest, XGBoost).
+- **Model Evaluation & Interpretation**: Using metrics like MAE/RMSE and explainability techniques like SHAP and LIME to understand model behavior.
+- **Policy Intervention Simulation**: Using models to forecast the potential health and economic impacts of different policy scenarios.
 
 ## ✨ Features
 
