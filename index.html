@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Time Series Analysis for Public Health — Full Deck (Slides 1–47)
+    </title>
+    <style>
+      :root {
+        --primary-bg: #f4f7f6;
+        --slide-bg: #ffffff;
+        --text-color: #1f2937; /* slate-800 */
+        --muted-text: #6b7280; /* slate-500 */
+        --header-color: #005a9c;
+        --accent-color: #009fda;
+        --accent-strong: #007bb1;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --radius: 16px;
+      }
+      :root[data-theme='dark'] {
+        --primary-bg: #0b1220;
+        --slide-bg: #0f1829;
+        --text-color: #e5e7eb;
+        --muted-text: #9ca3af;
+        --header-color: #7dd3fc;
+        --accent-color: #38bdf8;
+        --accent-strong: #0ea5e9;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+        background: var(--primary-bg);
+        color: var(--text-color);
+        overflow: hidden;
+      }
+      /* Toolbar */
+      .toolbar {
+        position: fixed;
+        inset: 12px 12px auto 12px;
+        height: 52px;
+        background: var(--slide-bg);
+        color: var(--text-color);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        z-index: 50;
+      }
+      .toolbar .btn {
+        appearance: none;
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--text-color);
+        padding: 8px 10px;
+        border-radius: 10px;
+        font-size: 14px;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+      .toolbar .btn:hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+      [data-theme='dark'] .toolbar .btn:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .toolbar .btn:focus-visible {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 2px;
+      }
+      .toolbar .btn.primary {
+        background: var(--accent-color);
+        color: #fff;
+      }
+      .toolbar .btn.primary:hover {
+        background: var(--accent-strong);
+      }
+      .toolbar .sep {
+        width: 1px;
+        height: 28px;
+        background: rgba(0, 0, 0, 0.08);
+        margin: 0 6px;
+      }
+      [data-theme='dark'] .toolbar .sep {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .toolbar .meta {
+        font-size: 13px;
+        color: var(--muted-text);
+      }
+      .progress {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 6px;
+        z-index: 40;
+        background: linear-gradient(
+          90deg,
+          var(--accent-color),
+          var(--accent-strong)
+        );
+        transform-origin: left center;
+        transform: scaleX(0);
+        transition: transform 0.25s ease;
+      }
+      .slideshow-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        background: var(--slide-bg);
+      }
+      .slide {
+        display: none;
+        width: 100%;
+        height: 100%;
+        padding: 5vw;
+        animation: fade 0.4s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: left;
+      }
+      .slide-content {
+        max-width: 1100px;
+        width: 100%;
+        max-height: 90vh;
+        overflow: auto;
+        padding: 24px;
+        line-height: 1.6;
+      }
+      .slide-content h2 {
+        color: var(--header-color);
+        font-size: 2.4em;
+        margin: 0 0 22px;
+        border-bottom: 3px solid var(--accent-color);
+        padding-bottom: 10px;
+      }
+      .slide-content h3 {
+        color: var(--header-color);
+        font-size: 1.5em;
+        margin: 24px 0 12px;
+      }
+      .slide-content ul {
+        list-style: none;
+        padding-left: 0;
+      }
+      .slide-content li {
+        margin-bottom: 12px;
+        font-size: 1.08em;
+        position: relative;
+        padding-left: 30px;
+      }
+      .slide-content li::before {
+        content: '✓';
+        color: var(--accent-color);
+        position: absolute;
+        left: 0;
+        font-weight: 700;
+        font-size: 1.15em;
+      }
+      .slide-content .emoji-bullet li::before {
+        content: var(--emoji);
+      }
+      .slide-content p {
+        margin-bottom: 14px;
+        font-size: 1.08em;
+      }
+      .slide-content strong {
+        color: var(--header-color);
+      }
+      .slide-content .code-block,
+      .slide-content .math-formula {
+        background: rgba(148, 163, 184, 0.16);
+        padding: 14px 16px;
+        border-radius: 10px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          'Liberation Mono', 'Courier New', monospace;
+        margin: 18px 0;
+        white-space: pre-wrap;
+        font-size: 0.98em;
+      }
+      .slide-content .math-formula {
+        text-align: center;
+        font-style: italic;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 18px;
+        font-size: 0.95em;
+      }
+      th,
+      td {
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        padding: 10px;
+        text-align: left;
+      }
+      th {
+        background: rgba(148, 163, 184, 0.18);
+        color: var(--header-color);
+        font-weight: 700;
+      }
+      tr:nth-child(even) {
+        background: rgba(148, 163, 184, 0.1);
+      }
+      .prev,
+      .next {
+        cursor: pointer;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: auto;
+        padding: 14px 16px;
+        color: #fff;
+        font-weight: 700;
+        font-size: 24px;
+        border-radius: 12px;
+        user-select: none;
+        z-index: 30;
+        background: rgba(0, 90, 156, 0.7);
+        transition: background 0.2s ease, transform 0.1s ease;
+      }
+      .next {
+        right: 18px;
+      }
+      .prev {
+        left: 18px;
+      }
+      .prev:hover,
+      .next:hover {
+        background: rgba(0, 40, 76, 1);
+      }
+      .prev:active,
+      .next:active {
+        transform: translateY(-50%) scale(0.96);
+      }
+      .numbertext {
+        color: var(--muted-text);
+        font-size: 12px;
+        padding: 8px 12px;
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.06);
+        border-radius: 8px;
+        z-index: 10;
+      }
+      [data-theme='dark'] .numbertext {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .dot-container {
+        position: absolute;
+        bottom: 22px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.18);
+        border-radius: 999px;
+        z-index: 20;
+        backdrop-filter: blur(6px);
+      }
+      .dot {
+        cursor: pointer;
+        height: 12px;
+        width: 12px;
+        margin: 0 4px;
+        background: #bbb;
+        border-radius: 50%;
+        display: inline-block;
+        transition: background 0.25s ease, transform 0.25s ease;
+      }
+      .dot.active,
+      .dot:hover {
+        background: var(--accent-color);
+        transform: scale(1.15);
+      }
+      @media print {
+        html,
+        body {
+          height: auto;
+          overflow: visible;
+        }
+        .toolbar,
+        .prev,
+        .next,
+        .dot-container,
+        .progress {
+          display: none !important;
+        }
+        .slideshow-container {
+          height: auto;
+        }
+        .slide {
+          display: block !important;
+          page-break-after: always;
+          height: auto;
+        }
+        .numbertext {
+          position: static;
+          background: none;
+        }
+      }
+      @keyframes fade {
+        from {
+          opacity: 0.4;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .slide {
+          animation: none;
+        }
+        .progress {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar" role="toolbar" aria-label="Slide controls">
+      <button class="btn" id="themeBtn" title="Toggle theme (D)">
+        🌗 Theme
+      </button>
+      <div class="sep"></div>
+      <button class="btn" id="fsBtn" title="Fullscreen (F)">
+        ⛶ Fullscreen
+      </button>
+      <div class="sep"></div>
+      <button class="btn primary" id="prevBtn" title="Previous (← / PageUp)">
+        ◀ Prev
+      </button>
+      <button
+        class="btn primary"
+        id="nextBtn"
+        title="Next (→ / PageDown / Space)"
+      >
+        Next ▶
+      </button>
+      <div class="sep"></div>
+      <button class="btn" id="autoBtn" title="Toggle auto-advance (T)">
+        ⏱️ Auto
+      </button>
+      <span class="meta" id="timerDisplay" aria-live="polite">00:00</span>
+      <div class="sep"></div>
+      <span class="meta" id="counter" aria-live="polite">1 / 47</span>
+    </div>
+
+    <div class="progress" id="progressBar" style="transform: scaleX(0)"></div>
+
+    <div class="slideshow-container" aria-live="polite">
+      <!-- Slides 1–47: content unchanged from your original -->
+      <div class="slide">
+        <div class="numbertext">1 / 47</div>
+        <div class="slide-content">
+          <h2>Welcome! 👋</h2>
+          <h3>Time Series Analysis for Public Health Decision Making</h3>
+          <p>
+            <strong>Case Study:</strong> Air Pollution and Tuberculosis in
+            Kampala, Uganda
+          </p>
+          <ul class="emoji-bullet" style="--emoji: '🗺️'">
+            <li>
+              <strong>Today's Journey:</strong>
+              <ul>
+                <li style="--emoji: '➡️'">Foundations &amp; Core Methods</li>
+                <li style="--emoji: '➡️'">
+                  Advanced Applications &amp; Policy Impact
+                </li>
+              </ul>
+            </li>
+          </ul>
+          <p><strong>Presenters:</strong> Ola / Mudarshiru</p>
+          <p><strong>Contact:</strong> [Your Email]</p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">2 / 47</div>
+        <div class="slide-content">
+          <h2>Learning Objectives 🎯</h2>
+          <h3>By the End of Today, You Will:</h3>
+          <ul>
+            <li>
+              Apply <strong>Interrupted Time Series Analysis</strong> to detect
+              intervention effects
+            </li>
+            <li>
+              Handle <strong>seasonality</strong> and build forecasting models
+            </li>
+            <li>
+              Engineer <strong>time-derived features</strong> for enhanced
+              predictions
+            </li>
+            <li>
+              Simulate <strong>policy interventions</strong> and quantify health
+              impacts
+            </li>
+            <li>
+              <strong>Communicate findings</strong> to stakeholders effectively
+            </li>
+          </ul>
+          <p>
+            <strong>Practical Focus:</strong> You'll leave with working code and
+            templates you can use immediately!
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">3 / 47</div>
+        <div class="slide-content">
+          <h2>Our Case Study Context 🏙️</h2>
+          <h3>Kampala, Uganda: A Perfect Natural Experiment</h3>
+          <ul>
+            <li style="--emoji: '❗'">
+              <strong>The Challenge:</strong> Rapid urbanisation and increasing
+              air pollution, a rising tuberculosis burden, limited resources,
+              and a need for evidence-based policy decisions.
+            </li>
+            <li style="--emoji: '💡'">
+              <strong>The Opportunity:</strong> 5 years of detailed data
+              (2020-2024), multiple intervention possibilities, and real policy
+              implications.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">4 / 47</div>
+        <div class="slide-content">
+          <h2>The Data We're Working With 📊</h2>
+          <h3>A Multi-dimensional Time Series Dataset</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: '💨'">
+              <strong>Air Quality Data:</strong> Weekly PM2.5 measurements,
+              temperature, and humidity readings, with over 260 observations.
+            </li>
+            <li style="--emoji: '🩺'">
+              <strong>Health Outcome Data:</strong> Monthly TB case reports from
+              DHIS2, presented as population-adjusted incidence rates.
+            </li>
+          </ul>
+          <p>
+            <strong>Temporal Resolution:</strong> A mix of weekly environmental
+            data and monthly health data.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">5 / 47</div>
+        <div class="slide-content">
+          <h2>Key Research Questions 🤔</h2>
+          <h3>What We're Trying to Answer Today:</h3>
+          <ul>
+            <li style="--emoji: '🔍'">
+              <strong>Question 1:</strong> Is there a measurable relationship
+              between PM2.5 levels and TB incidence?
+            </li>
+            <li style="--emoji: '📊'">
+              <strong>Question 2:</strong> How do seasonal patterns affect both
+              air quality and TB cases?
+            </li>
+            <li style="--emoji: '🎯'">
+              <strong>Question 3:</strong> Can we predict TB cases using
+              environmental and time-based features?
+            </li>
+            <li style="--emoji: '💡'">
+              <strong>Question 4:</strong> What would be the health impact of
+              different air quality interventions?
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">6 / 47</div>
+        <div class="slide-content">
+          <h2>Why Time Series Analysis? 📈</h2>
+          <h3>The Power of Temporal Data in Public Health</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: '➡️'">
+              <strong>Traditional Epidemiology:</strong> Focuses on static,
+              cross-sectional associations with limited causal inference.
+            </li>
+            <li style="--emoji: '➡️'">
+              <strong>Time Series Epidemiology:</strong> Examines dynamic
+              relationships, leverages natural experiments, evaluates policy
+              impact, and enables forecasting.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">7 / 47</div>
+        <div class="slide-content">
+          <h2>Real-World Impact 🌍</h2>
+          <h3>From Analysis to Action</h3>
+          <h3>Policy Questions We Can Answer:</h3>
+          <ul>
+            <li>When should TB control programmes intensify their efforts?</li>
+            <li>
+              Which air quality interventions provide the best health return on
+              investment?
+            </li>
+            <li>
+              How many TB cases could be prevented with a 25% reduction in
+              PM2.5?
+            </li>
+            <li>
+              What is the cost-effectiveness of different policy approaches?
+            </li>
+          </ul>
+          <p>
+            <strong>Stakeholders:</strong> Ministry of Health, Kampala Capital
+            City Authority, WHO, Development Partners.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">8 / 47</div>
+        <div class="slide-content">
+          <h2>Methods Overview 🛠️</h2>
+          <h3>Our Analytical Approach Today</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: '1️⃣'">
+              <strong>Step 1: Interrupted Time Series Analysis:</strong>
+              Identify intervention points and quantify changes.
+            </li>
+            <li style="--emoji: '2️⃣'">
+              <strong>Step 2: Seasonal Decomposition &amp; Forecasting:</strong>
+              Extract seasonal patterns and build predictive models.
+            </li>
+            <li style="--emoji: '3️⃣'">
+              <strong>Step 3: Feature Engineering &amp; ML:</strong> Create
+              derived time variables for advanced models.
+            </li>
+            <li style="--emoji: '4️⃣'">
+              <strong>Step 4: Intervention Simulation:</strong> Model policy
+              scenarios and estimate health impacts.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">9 / 47</div>
+        <div class="slide-content">
+          <h2>Software &amp; Tools 🖥️</h2>
+          <h3>What We're Using Today</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: '🐍'">
+              <strong>Primary Platform:</strong> Python with Jupyter notebooks.
+              <ul class="emoji-bullet">
+                <li style="--emoji: '📦'">
+                  `pandas`, `numpy` for data manipulation, `statsmodels` for
+                  time series analysis, `scikit-learn` for machine learning, and
+                  `matplotlib`, `seaborn` for visualisation.
+                </li>
+              </ul>
+            </li>
+            <li style="--emoji: '👨‍💻'">
+              <strong>Live Coding Approach:</strong> All analyses are
+              demonstrated in real-time with code provided for take-home use.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">10 / 47</div>
+        <div class="slide-content">
+          <h2>Expected Outcomes 🏆</h2>
+          <h3>What Success Looks Like</h3>
+          <h3>Immediate Deliverables:</h3>
+          <ul>
+            <li>A quantified PM2.5-TB relationship.</li>
+            <li>A seasonal forecasting model.</li>
+            <li>Intervention impact estimates and policy recommendations.</li>
+          </ul>
+          <h3>Skills You'll Gain:</h3>
+          <ul>
+            <li>
+              A practical time series analysis workflow, evidence-based policy
+              evaluation methods, reproducible research practices, and
+              stakeholder communication strategies.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">11 / 47</div>
+        <div class="slide-content">
+          <h2>What is Interrupted Time Series (ITSA)? 📉</h2>
+          <h3>A Powerful Quasi-Experimental Design</h3>
+          <p>
+            <strong>Definition:</strong> ITSA evaluates an intervention's impact
+            by comparing time series data <strong>before and after</strong> the
+            intervention point.
+          </p>
+          <p>
+            <strong>Key Principle:</strong> It assumes that without the
+            intervention, the pre-intervention trend would have continued.
+          </p>
+          <h3>Why Use ITSA?</h3>
+          <ul>
+            <li>No randomised control group needed.</li>
+            <li>Effectively uses historical data.</li>
+            <li>Controls for existing trends.</li>
+            <li>Quantifies both immediate and gradual effects.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">12 / 47</div>
+        <div class="slide-content">
+          <h2>The ITSA Model Components 🧩</h2>
+          <h3>Breaking Down the Analysis</h3>
+          <h3>Four Key Parameters:</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: 'β₀'">
+              <strong>Baseline level:</strong> The starting intercept.
+            </li>
+            <li style="--emoji: 'β₁'">
+              <strong>Pre-intervention trend:</strong> The initial slope.
+            </li>
+            <li style="--emoji: 'β₂'">
+              <strong>Level change:</strong> The immediate impact or "jump".
+            </li>
+            <li style="--emoji: 'β₃'">
+              <strong>Trend change:</strong> The difference in slope
+              post-intervention.
+            </li>
+          </ul>
+          <p>
+            Each parameter tells a unique story about the intervention's effect.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">13 / 47</div>
+        <div class="slide-content">
+          <h2>The ITSA Model Equation 🔬</h2>
+          <h3>The Mathematics Behind ITSA</h3>
+          <div class="math-formula">
+            Y&#8340; = β₀ + β₁×T&#8340; + β₂×X&#8340; + β₃×X&#8340;T&#8340; +
+            ε&#8340;
+          </div>
+          <h3>Where:</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: 'Yₜ'">Outcome at time t (e.g., TB cases).</li>
+            <li style="--emoji: 'Tₜ'">Time since start of study.</li>
+            <li style="--emoji: 'Xₜ'">
+              Intervention indicator (0 before, 1 after).
+            </li>
+            <li style="--emoji: 'XₜTₜ'">Time since intervention began.</li>
+          </ul>
+          <p>
+            <strong>Key Assumptions:</strong> Linear trends, no confounding
+            events, and appropriate timing.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">14 / 47</div>
+        <div class="slide-content">
+          <h2>Types of ITSA Effects 📊</h2>
+          <h3>What Changes Can We Detect?</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: '1️⃣'">
+              <strong>Immediate Level Change (β₂):</strong> A sudden jump or
+              drop right after the intervention.
+            </li>
+            <li style="--emoji: '2️⃣'">
+              <strong>Gradual Trend Change (β₃):</strong> A change in the slope
+              or direction of the trend after the intervention.
+            </li>
+            <li style="--emoji: '3️⃣'">
+              <strong>Combined Effects:</strong> Both an immediate and a gradual
+              change occur together, which is often the most realistic scenario.
+            </li>
+            <li style="--emoji: '4️⃣'">
+              <strong>No Effect:</strong> Neither β₂ nor β₃ are statistically
+              significant, meaning the policy had no measurable impact.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">15 / 47</div>
+        <div class="slide-content">
+          <h2>Common ITSA Pitfalls ⚠️</h2>
+          <h3>What Can Go Wrong?</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: '📅'">
+              <strong>Inappropriate Timing:</strong> Choosing the intervention
+              date after looking at the data (data snooping). Solution: Use
+              external evidence for timing.
+            </li>
+            <li style="--emoji: '📉'">
+              <strong>Insufficient Data:</strong> Too few observations before or
+              after. Solution: Aim for at least 12 data points on each side.
+            </li>
+            <li style="--emoji: '🤯'">
+              <strong>Confounding Interventions:</strong> Multiple events happen
+              at the same time. Solution: Account for all known interventions.
+            </li>
+            <li style="--emoji: '📈'">
+              <strong>Non-linear Trends:</strong> Assuming a straight line when
+              the trend is curved. Solution: Test for non-linearity.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">16 / 47</div>
+        <div class="slide-content">
+          <h2>Understanding Seasonality in Health Data ☀️❄️</h2>
+          <h3>Why Patterns Matter</h3>
+          <p>
+            <strong>Definition:</strong> Seasonality refers to predictable
+            patterns that repeat over fixed periods like monthly, quarterly, or
+            yearly.
+          </p>
+          <h3>Examples in Health:</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: '🤧'">
+              Influenza: Winter peaks in temperate regions.
+            </li>
+            <li style="--emoji: '🦟'">
+              Malaria: Rainy season surges in tropical areas.
+            </li>
+            <li style="--emoji: '🫁'">
+              TB: Dry season increases in sub-Saharan Africa.
+            </li>
+            <li style="--emoji: '🧠'">
+              Mental health: Seasonal affective patterns.
+            </li>
+          </ul>
+          <h3>Why It Matters:</h3>
+          <ul>
+            <li>Affects resource planning.</li>
+            <li>Influences intervention timing.</li>
+            <li>Can confound trend analysis.</li>
+            <li>Essential for accurate forecasting.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">17 / 47</div>
+        <div class="slide-content">
+          <h2>Seasonality in the Kampala Context 🇺🇬</h2>
+          <h3>Environmental and Health Patterns</h3>
+          <h3>Kampala's Seasonal Calendar:</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: '☀️'">
+              <strong>Dry seasons:</strong> Dec-Feb, Jun-Aug (high PM2.5).
+            </li>
+            <li style="--emoji: '🌧️'">
+              <strong>Wet seasons:</strong> Mar-May, Sep-Nov (lower PM2.5).
+            </li>
+            <li style="--emoji: '🫁'">
+              <strong>Peak TB months:</strong> January-March (dry season).
+            </li>
+          </ul>
+          <h3>Biological Mechanisms:</h3>
+          <ul>
+            <li>Dry air → increased dust and particulates.</li>
+            <li>Indoor crowding during dry season.</li>
+            <li>Reduced lung clearance capacity.</li>
+            <li>Weakened immune response.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">18 / 47</div>
+        <div class="slide-content">
+          <h2>Types of Seasonal Patterns ➕✖️</h2>
+          <h3>Additive vs. Multiplicative Seasonality</h3>
+          <h3>Additive Seasonality:</h3>
+          <p>
+            The seasonal effect is constant over time, meaning the same absolute
+            increase/decrease each year.
+          </p>
+          <div class="math-formula">Y(t) = Trend(t) + Season(t) + Noise(t)</div>
+          <h3>Multiplicative Seasonality:</h3>
+          <p>
+            The seasonal effect is proportional to the trend, leading to larger
+            swings as the trend increases.
+          </p>
+          <div class="math-formula">Y(t) = Trend(t) × Season(t) × Noise(t)</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">19 / 47</div>
+        <div class="slide-content">
+          <h2>Detecting Seasonality 🔍</h2>
+          <h3>Statistical and Visual Methods</h3>
+          <h3>Visual Methods:</h3>
+          <ul>
+            <li>Time series plots with seasonal markers.</li>
+            <li>Seasonal subseries plots.</li>
+            <li>Autocorrelation functions (ACF).</li>
+          </ul>
+          <h3>Statistical Tests:</h3>
+          <ul>
+            <li>Kruskal-Wallis test: Non-parametric seasonal differences.</li>
+            <li>QS test: Seasonal unit root test.</li>
+            <li>Spectral analysis: Frequency domain approach.</li>
+          </ul>
+          <h3>Rule of Thumb: 👍</h3>
+          <p>
+            You need ≥2 full cycles to detect seasonality reliably. That means
+            ≥24 observations for monthly data and ≥104 for weekly data.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">20 / 47</div>
+        <div class="slide-content">
+          <h2>Seasonal Decomposition Methods 쪼개기</h2>
+          <h3>Breaking Down the Components</h3>
+          <h3>Classical Decomposition:</h3>
+          <p>
+            Uses simple moving averages to separate trend, seasonal, and
+            irregular components, but assumes a constant seasonal pattern.
+          </p>
+          <h3>STL Decomposition:</h3>
+          <p>
+            A more flexible and robust method that handles changing seasonal
+            patterns and is resistant to outliers.
+          </p>
+          <h3>X-13ARIMA-SEATS:</h3>
+          <p>
+            An advanced method used by statistical agencies that can handle
+            complex patterns, including trading day and holiday effects.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">21 / 47</div>
+        <div class="slide-content">
+          <h2>QUICK EXERCISE - Interpret Seasonal Plots 🗣️</h2>
+          <h3>5-Minute Group Exercise</h3>
+          <p>
+            <strong>Your Task:</strong> Look at the seasonal decomposition plots
+            for both PM2.5 and TB.
+          </p>
+          <h3>Questions:</h3>
+          <ol>
+            <li>Which months show highest PM2.5 levels?</li>
+            <li>Is the TB peak before, during, or after PM2.5 peak?</li>
+            <li>What might explain this lag pattern?</li>
+            <li>How would you time a public health intervention?</li>
+          </ol>
+          <h3>Discussion Points:</h3>
+          <p>
+            Biological plausibility of lag, policy intervention timing, and
+            resource planning implications.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">22 / 47</div>
+        <div class="slide-content">
+          <h2>Beyond Basic Time Series 🚀</h2>
+          <h3>The Power of Derived Variables (Feature Engineering)</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: '📉'">
+              <strong>Traditional Approach:</strong> Uses raw time series values
+              with basic models like ARIMA, offering a limited feature set.
+            </li>
+            <li style="--emoji: '✨'">
+              <strong>Feature Engineering Approach:</strong> Creates meaningful
+              derived variables, combining domain knowledge with data to enable
+              machine learning methods and capture complex relationships.
+            </li>
+          </ul>
+          <p>
+            <strong>Why This Matters:</strong> It leads to better prediction
+            accuracy, more interpretable models, and incorporates expert
+            knowledge.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">23 / 47</div>
+        <div class="slide-content">
+          <h2>Categories of Time-Derived Features 🧰</h2>
+          <h3>Building Your Feature Arsenal</h3>
+          <ol>
+            <li>
+              <strong>Lag Features:</strong> Values from previous time periods,
+              essential for capturing dependencies.
+            </li>
+            <li>
+              <strong>Calendar Features:</strong> Day of week, month, quarter,
+              and holiday indicators.
+            </li>
+            <li>
+              <strong>Moving Statistics:</strong> Rolling means, medians, and
+              standard deviations to measure trend and volatility.
+            </li>
+            <li>
+              <strong>Change Features:</strong> Differences and percentage
+              changes to capture acceleration and momentum.
+            </li>
+            <li>
+              <strong>Interaction Features:</strong> Combinations of time
+              variables, like seasonal-trend interactions.
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">24 / 47</div>
+        <div class="slide-content">
+          <h2>Lag Variables in Epidemiology ⏳</h2>
+          <h3>Why Time Delays Matter</h3>
+          <h3>Biological Lag Mechanisms:</h3>
+          <ul>
+            <li>
+              <strong>Exposure → Disease:</strong> PM2.5 exposure to TB symptoms
+              can take 2-8 weeks.
+            </li>
+            <li>
+              <strong>Infection → Detection:</strong> TB latency can be weeks to
+              months.
+            </li>
+            <li>
+              <strong>Reporting → Data:</strong> Administrative delays can add
+              1-4 weeks.
+            </li>
+          </ul>
+          <h3>Kampala Context:</h3>
+          <p>
+            PM2.5 peaks in January-February, while TB cases peak in
+            February-April, suggesting a 1-2 month lag relationship.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">25 / 47</div>
+        <div class="slide-content">
+          <h2>Calendar Effects in Health Data 📅</h2>
+          <h3>Systematic Time Patterns</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: '🗓️'">
+              <strong>Day-of-Week Effects:</strong> Reflect healthcare reporting
+              patterns and staff availability.
+            </li>
+            <li style="--emoji: '🌤️'">
+              <strong>Monthly Effects:</strong> Influenced by budget cycles,
+              weather patterns, and school calendars.
+            </li>
+            <li style="--emoji: '🎄'">
+              <strong>Holiday Effects:</strong> Can lead to reduced healthcare
+              seeking and administrative delays.
+            </li>
+            <li style="--emoji: '🎉'">
+              <strong>Special Events:</strong> Disease outbreaks, policy
+              changes, or economic disruptions can impact data.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">26 / 47</div>
+        <div class="slide-content">
+          <h2>Moving Averages and Trends 📈</h2>
+          <h3>Capturing Temporal Patterns</h3>
+          <h3>Moving Averages (MA):</h3>
+          <p>
+            Smooth short-term fluctuations to capture underlying trends.
+            Different window sizes reveal different patterns.
+          </p>
+          <h3>Exponentially Weighted Moving Averages (EWMA):</h3>
+          <p>
+            Give more weight to recent observations, allowing them to respond
+            faster to trend changes.
+          </p>
+          <h3>Other Rolling Statistics:</h3>
+          <ul>
+            <li>Rolling standard deviation (volatility).</li>
+            <li>Rolling minimum/maximum (range).</li>
+            <li>Rolling correlations (relationship stability).</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">27 / 47</div>
+        <div class="slide-content">
+          <h2>Model Interpretation &amp; Explainability 💬</h2>
+          <h3>Making "Black Boxes" Transparent</h3>
+          <h3>Why Does Model Interpretation Matter?</h3>
+          <ul>
+            <li>Building stakeholder trust.</li>
+            <li>Identifying potential biases.</li>
+            <li>Understanding causal mechanisms.</li>
+            <li>Meeting regulatory requirements.</li>
+          </ul>
+          <h3>Interpretation Methods:</h3>
+          <p>
+            Feature Importance (global), Partial Dependence Plots (global), SHAP
+            Values (local and global), and LIME (local).
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">28 / 47</div>
+        <div class="slide-content">
+          <h2>Time Series Forecasting Basics 🔮</h2>
+          <h3>What is Forecasting?</h3>
+          <p>
+            <strong>Definition:</strong> Predicting future values of a time
+            series based on historical patterns, trends, and relationships.
+          </p>
+          <h3>Core Components:</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: '🎯'">
+              <strong>Point Forecast:</strong> Single predicted value.
+            </li>
+            <li style="--emoji: '📊'">
+              <strong>Prediction Interval:</strong> Range of plausible values.
+            </li>
+            <li style="--emoji: '⏳'">
+              <strong>Forecast Horizon:</strong> How far into the future.
+            </li>
+            <li style="--emoji: '📍'">
+              <strong>Forecast Origin:</strong> The last observed data point.
+            </li>
+          </ul>
+          <p>
+            <strong>Why Forecast in Public Health?</strong> For resource
+            planning, early warnings, policy evaluation, and budget allocation.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">29 / 47</div>
+        <div class="slide-content">
+          <h2>Components of a Time Series 分解</h2>
+          <h3>Understanding What We're Predicting</h3>
+          <p>A time series can be broken down into four key components:</p>
+          <ol>
+            <li>
+              <strong>Level (L&#8340;):</strong> The current baseline value of
+              the series.
+            </li>
+            <li>
+              <strong>Trend (T&#8340;):</strong> The long-term direction
+              (increasing, decreasing, or stable).
+            </li>
+            <li>
+              <strong>Seasonality (S&#8340;):</strong> Predictable patterns that
+              repeat over fixed periods.
+            </li>
+            <li>
+              <strong>Irregular/Noise (ε&#8340;):</strong> The random,
+              unpredictable variation in the data.
+            </li>
+          </ol>
+          <p>
+            These are combined in <strong>Additive</strong> (Y&#8340; = L&#8340;
+            + T&#8340; + S&#8340; + ε&#8340;) or
+            <strong>Multiplicative</strong> (Y&#8340; = L&#8340; × T&#8340; ×
+            S&#8340; × ε&#8340;) models.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">30 / 47</div>
+        <div class="slide-content">
+          <h2>Forecasting Approaches Overview 🗺️</h2>
+          <h3>From Simple to Sophisticated</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: '👍'">
+              <strong>Naive Methods:</strong> Simple baselines like Naive
+              (tomorrow = today) and Seasonal Naive (next year = same period
+              last year).
+            </li>
+            <li style="--emoji: '📈'">
+              <strong>Statistical Methods:</strong> Exponential Smoothing and
+              ARIMA models.
+            </li>
+            <li style="--emoji: '🤖'">
+              <strong>Machine Learning Methods:</strong> Regression, Tree-Based
+              models (Random Forest, XGBoost), and Neural Networks (LSTM, GRU).
+            </li>
+            <li style="--emoji: '🤝'">
+              <strong>Ensemble Methods:</strong> Combine multiple approaches to
+              outperform individual models.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">31 / 47</div>
+        <div class="slide-content">
+          <h2>Model Selection Criteria ✅</h2>
+          <h3>Choosing the Right Forecasting Model</h3>
+          <h3>Information Criteria (for Statistical Models):</h3>
+          <ul>
+            <li>
+              <strong>Akaike Information Criterion (AIC):</strong> Balances
+              goodness of fit with model complexity. Lower values are better.
+            </li>
+            <li>
+              <strong>Bayesian Information Criterion (BIC):</strong> Similar to
+              AIC but penalizes complexity more heavily, especially with larger
+              datasets.
+            </li>
+          </ul>
+          <p>
+            The process involves identifying candidates, fitting them,
+            calculating criteria, selecting the model with the lowest value, and
+            validating on holdout data.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">32 / 47</div>
+        <div class="slide-content">
+          <h2>Cross-Validation for Time Series ✂️</h2>
+          <h3>Proper Validation Strategies</h3>
+          <p>
+            <strong
+              >Key Principle: Never use future data to predict the past!</strong
+            >
+            This means no random shuffling.
+          </p>
+          <h3>Time Series Split (or Walk-Forward Validation):</h3>
+          <p>
+            This is the most realistic evaluation method. It maintains temporal
+            order by creating sequential train/test splits.
+          </p>
+          <div class="code-block">
+            Training: [1][2][3][4][5][6] | Test: [7][8] Training:
+            [1][2][3][4][5][6][7] | Test: [8][9] Training:
+            [1][2][3][4][5][6][7][8] | Test: [9][10]
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">33 / 47</div>
+        <div class="slide-content">
+          <h2>Forecast Accuracy Measures 📏</h2>
+          <h3>How Good Are Our Predictions?</h3>
+          <h3>Scale-Dependent Metrics:</h3>
+          <ul>
+            <li>
+              <strong>MAE (Mean Absolute Error):</strong> Easy to interpret and
+              robust to outliers.
+            </li>
+            <li>
+              <strong>RMSE (Root Mean Square Error):</strong> Penalizes large
+              errors more heavily.
+            </li>
+          </ul>
+          <h3>Scale-Independent Metrics:</h3>
+          <ul>
+            <li>
+              <strong>MAPE (Mean Absolute Percentage Error):</strong> Intuitive
+              percentage interpretation.
+            </li>
+          </ul>
+          <h3>Relative Metrics:</h3>
+          <ul>
+            <li>
+              <strong>MASE (Mean Absolute Scaled Error):</strong> Scale-free
+              comparison against a naive benchmark.
+            </li>
+          </ul>
+          <p>
+            <strong>Pro Tip:</strong> Use multiple metrics for a comprehensive
+            evaluation.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">34 / 47</div>
+        <div class="slide-content">
+          <h2>Characteristics of a Good Model ✨</h2>
+          <p>
+            When you've built a good forecasting model, its
+            <strong>residuals</strong> (the forecast errors) should have
+            specific properties:
+          </p>
+          <ul>
+            <li>They should look like white noise.</li>
+            <li>There should be no patterns in the residuals over time.</li>
+            <li>The residuals should be approximately normally distributed.</li>
+            <li>
+              There should be no significant autocorrelation in the residuals.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">35 / 47</div>
+        <div class="slide-content">
+          <h2>RESULTS - Model Performance Comparison 🏆</h2>
+          <h3>Kampala TB Forecasting Results</h3>
+          <table>
+            <tr>
+              <th>Model</th>
+              <th>MAE</th>
+              <th>RMSE</th>
+              <th>MAPE</th>
+              <th>AIC</th>
+              <th>Notes</th>
+            </tr>
+            <tr>
+              <td>Naive</td>
+              <td>8.4</td>
+              <td>11.2</td>
+              <td>18.5%</td>
+              <td>-</td>
+              <td>Tomorrow = Today</td>
+            </tr>
+            <tr>
+              <td>Seasonal Naive</td>
+              <td>6.1</td>
+              <td>8.9</td>
+              <td>13.8%</td>
+              <td>-</td>
+              <td>Next year = Same month last year</td>
+            </tr>
+            <tr>
+              <td>SARIMA(1,1,1)(1,1,1)₁₂</td>
+              <td>4.8</td>
+              <td>6.2</td>
+              <td>10.2%</td>
+              <td>486.2</td>
+              <td>Best statistical model</td>
+            </tr>
+            <tr>
+              <td>Exponential Smoothing</td>
+              <td>5.2</td>
+              <td>7.1</td>
+              <td>11.4%</td>
+              <td>492.8</td>
+              <td>Simple and robust</td>
+            </tr>
+            <tr>
+              <td><strong>Random Forest</strong></td>
+              <td><strong>4.2</strong></td>
+              <td><strong>5.8</strong></td>
+              <td><strong>9.1%</strong></td>
+              <td><strong>-</strong></td>
+              <td><strong>Best overall performance</strong></td>
+            </tr>
+            <tr>
+              <td>XGBoost</td>
+              <td>4.5</td>
+              <td>6.0</td>
+              <td>9.8%</td>
+              <td>-</td>
+              <td>Good performance</td>
+            </tr>
+            <tr>
+              <td>LSTM</td>
+              <td>5.0</td>
+              <td>6.8</td>
+              <td>10.8%</td>
+              <td>-</td>
+              <td>Complex but powerful</td>
+            </tr>
+          </table>
+          <h3>Key Findings:</h3>
+          <p>
+            <strong>Random Forest</strong> achieves the best accuracy (MAE =
+            4.2), while <strong>SARIMA</strong> provides good interpretability.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">36 / 47</div>
+        <div class="slide-content">
+          <h2>Model Selection Recommendation 🏅</h2>
+          <h3>Based on the performance comparison:</h3>
+          <ul class="emoji-bullet">
+            <li style="--emoji: '🌳'">
+              <strong>Primary Model: Random Forest.</strong> Reason: Best
+              overall accuracy.
+            </li>
+            <li style="--emoji: '📊'">
+              <strong>Secondary Model: SARIMA.</strong> Reason: Excellent
+              interpretability and uncertainty quantification.
+            </li>
+            <li style="--emoji: '🤝'">
+              <strong>Ensemble Model:</strong> Average the predictions of the
+              top 3 models for more robust forecasts.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">37 / 47</div>
+        <div class="slide-content">
+          <h2>ML vs. Traditional Methods 🤖 vs. 📈</h2>
+          <h3>Comparing Paradigms for Health Forecasting</h3>
+          <h3>Traditional Statistical Methods:</h3>
+          <ul>
+            <li>
+              <strong>Strengths:</strong> Interpretable, great for uncertainty
+              quantification, theory-based, and work well with small data.
+            </li>
+            <li>
+              <strong>Limitations:</strong> Rely on linear assumptions, assume
+              fixed relationships, and have limited feature use.
+            </li>
+          </ul>
+          <h3>Machine Learning Methods:</h3>
+          <ul>
+            <li>
+              <strong>Strengths:</strong> Capture non-linear relationships, are
+              feature-rich, adaptive, and often achieve better accuracy.
+            </li>
+            <li>
+              <strong>Limitations:</strong> Can be a "black box," are prone to
+              overfitting, and often data-hungry.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">38 / 47</div>
+        <div class="slide-content">
+          <h2>Introduction to Intervention Simulation 🧪</h2>
+          <h3>Bridging Research and Policy</h3>
+          <h3>What is Intervention Simulation?</h3>
+          <p>
+            The mathematical modeling of "what-if" policy scenarios to quantify
+            potential health impacts and cost-effectiveness
+            <em>before</em> implementation.
+          </p>
+          <h3>Why Simulate?</h3>
+          <p>
+            Real-world implementation is costly, time-consuming, can have
+            ethical constraints, and requires evidence for political approval.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">39 / 47</div>
+        <div class="slide-content">
+          <h2>The Simulation Framework 🏗️</h2>
+          <h3>From Data to Decision</h3>
+          <ol>
+            <li>
+              <strong>Step 1: Baseline Estimation.</strong> Analyze current
+              PM2.5 and TB patterns and project a "status quo" future.
+            </li>
+            <li>
+              <strong>Step 2: Define Intervention Scenarios.</strong> Define
+              specific policies and estimate their PM2.5 reduction potential.
+            </li>
+            <li>
+              <strong>Step 3: Health Impact Modeling.</strong> Use
+              concentration-response functions to link PM2.5 reduction to health
+              outcomes.
+            </li>
+            <li>
+              <strong>Step 4: Economic Evaluation.</strong> Estimate
+              implementation costs and health system savings to calculate cost
+              per case prevented.
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">40 / 47</div>
+        <div class="slide-content">
+          <h2>Counterfactual Thinking in Public Health 🤔</h2>
+          <h3>The Art of "What If?"</h3>
+          <h3>Counterfactual Questions:</h3>
+          <ul>
+            <li>
+              What would TB incidence be <strong>WITHOUT</strong> the
+              intervention?
+            </li>
+            <li>
+              How many cases are <strong>PREVENTED</strong> by the intervention?
+            </li>
+            <li>What is the <strong>DIFFERENCE</strong> between scenarios?</li>
+          </ul>
+          <p>
+            <strong>Key Principle:</strong> We can only observe one reality, but
+            we can model credible alternatives to estimate impact. The impact is
+            the difference between the observed (or baseline) and the
+            counterfactual scenario.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">41 / 47</div>
+        <div class="slide-content">
+          <h2>Concentration-Response Functions (CRFs) 🧬</h2>
+          <h3>The Science Behind Health Impact</h3>
+          <p>
+            <strong>Definition:</strong> A CRF is a mathematical relationship
+            that links the level of exposure to a health outcome.
+          </p>
+          <p>
+            For PM2.5 and respiratory disease, this is often expressed as a
+            <strong>Relative Risk (RR)</strong>:
+          </p>
+          <div class="math-formula">Relative Risk (RR) = exp(β × ΔPM2.5)</div>
+          <p>
+            Where β is the concentration-response coefficient and ΔPM2.5 is the
+            change in concentration. A meta-analysis suggests a β ≈ 0.08 per 10
+            μg/m³ PM2.5 increase for TB.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">42 / 47</div>
+        <div class="slide-content">
+          <h2>Building Kampala's Intervention Scenarios 🚦🌳</h2>
+          <h3>Realistic Policy Options</h3>
+          <h3>Scenario 1: Traffic Control Measures</h3>
+          <ul>
+            <li>
+              <strong>Actions:</strong> Congestion pricing, public transport
+              expansion, heavy vehicle restrictions.
+            </li>
+            <li><strong>Expected PM2.5 Reduction:</strong> 25%.</li>
+          </ul>
+          <h3>Scenario 2: Green Space Development</h3>
+          <ul>
+            <li>
+              <strong>Actions:</strong> Urban tree planting, creating parks and
+              green corridors.
+            </li>
+            <li><strong>Expected PM2.5 Reduction:</strong> 15%.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">43 / 47</div>
+        <div class="slide-content">
+          <h2>More Intervention Scenarios 🏭🤝</h2>
+          <h3>A Comprehensive Policy Portfolio</h3>
+          <h3>Scenario 3: Industrial Emission Controls</h3>
+          <ul>
+            <li>
+              <strong>Actions:</strong> Stricter emission standards, technology
+              upgrade subsidies.
+            </li>
+            <li><strong>Expected PM2.5 Reduction:</strong> 20%.</li>
+          </ul>
+          <h3>Scenario 4: Combined Approach</h3>
+          <ul>
+            <li>
+              <strong>Actions:</strong> All interventions implemented together.
+            </li>
+            <li>
+              <strong>Expected PM2.5 Reduction:</strong> 35% (note: effects are
+              not perfectly additive).
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">44 / 47</div>
+        <div class="slide-content">
+          <h2>CASE STUDY - Defining the Baseline Scenario 📍</h2>
+          <h3>Where We Are Now</h3>
+          <h3>Current Kampala Situation (2020-2024):</h3>
+          <ul>
+            <li><strong>Average PM2.5:</strong> 27.6 μg/m³.</li>
+            <li><strong>Average TB cases:</strong> 53.1 per month.</li>
+            <li>
+              <strong>Underlying Trend:</strong> A +2.3% increase in PM2.5 per
+              year.
+            </li>
+            <li><strong>Population at risk:</strong> 1.5 million people.</li>
+          </ul>
+          <h3>Baseline Projection (No Intervention):</h3>
+          <p>
+            By 2030, PM2.5 is projected to reach 31.5 μg/m³, expected to
+            increase TB cases by +12%.
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">45 / 47</div>
+        <div class="slide-content">
+          <h2>Uncertainty and Sensitivity Analysis 🎲</h2>
+          <h3>Dealing with the Unknown</h3>
+          <h3>Sources of Uncertainty:</h3>
+          <ul>
+            <li>
+              <strong>Parameter Uncertainty:</strong> The β coefficient has a
+              range (e.g., 0.06-0.12).
+            </li>
+            <li>
+              <strong>Implementation Uncertainty:</strong> Will the planned
+              PM2.5 reduction actually be achieved?
+            </li>
+            <li>
+              <strong>Baseline Uncertainty:</strong> Will future trends continue
+              as expected?
+            </li>
+            <li>
+              <strong>Cost Uncertainty:</strong> Real-world implementation costs
+              can vary.
+            </li>
+          </ul>
+          <h3>Sensitivity Analysis Methods:</h3>
+          <p>
+            One-way analysis, Monte Carlo simulation, and scenario analysis
+            (best/worst case).
+          </p>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">46 / 47</div>
+        <div class="slide-content">
+          <h2>CASE STUDY - Recommendations for Kampala 📢</h2>
+          <h3>Translating Analysis to Policy</h3>
+          <h3>Tier 1 (Immediate Implementation): Traffic Control Measures</h3>
+          <ul>
+            <li>
+              <strong>Reason:</strong> Best cost-effectiveness ($4,991/case) and
+              high impact (508 cases prevented over 5 years). Positive economic
+              return (BCR = 1.85).
+            </li>
+          </ul>
+          <h3>Tier 2 (Medium-term Planning): Industrial Controls</h3>
+          <ul>
+            <li>
+              <strong>Reason:</strong> Moderate cost-effectiveness ($9,930/case)
+              with good impact (402 cases prevented).
+            </li>
+          </ul>
+          <h3>Tier 3 (Long-term Vision): Combined Approach</h3>
+          <ul>
+            <li>
+              <strong>Reason:</strong> Highest total impact (693 cases) but more
+              expensive; consider if international funding is available.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="numbertext">47 / 47</div>
+        <div class="slide-content">
+          <h2>Implementation Considerations 📝</h2>
+          <h3>From Analysis to Action</h3>
+          <p>
+            Even the best analysis requires a practical implementation plan:
+          </p>
+          <ul>
+            <li>
+              <strong>Political Feasibility:</strong> Is there stakeholder
+              buy-in, public acceptance, and enforcement capacity?
+            </li>
+            <li>
+              <strong>Technical Capacity:</strong> Are there systems for
+              monitoring, evaluation, and data collection?
+            </li>
+            <li>
+              <strong>Financial Sustainability:</strong> Where will funding come
+              from? Is there a long-term budget commitment?
+            </li>
+            <li>
+              <strong>Phased Implementation:</strong> Start with high-impact,
+              low-cost measures to build momentum and then scale up.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <a class="prev" aria-label="Previous slide">&#10094;</a>
+      <a class="next" aria-label="Next slide">&#10095;</a>
+      <div class="dot-container" aria-label="Slide navigation"></div>
+    </div>
+
+    <script>
+      const root = document.documentElement;
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const prevBtn = document.querySelector('.prev');
+      const nextBtn = document.querySelector('.next');
+      const dotsWrap = document.querySelector('.dot-container');
+      const counter = document.getElementById('counter');
+      const progress = document.getElementById('progressBar');
+      const themeBtn = document.getElementById('themeBtn');
+      const fsBtn = document.getElementById('fsBtn');
+      const autoBtn = document.getElementById('autoBtn');
+      const timerDisplay = document.getElementById('timerDisplay');
+      let slideIndex = 1;
+      let auto = false;
+      let ticker = 0; // seconds
+      let tickInterval = null;
+
+      function pad(n) {
+        return String(n).padStart(2, '0');
+      }
+      function setTimerUI() {
+        timerDisplay.textContent =
+          pad(Math.floor(ticker / 60)) + ':' + pad(ticker % 60);
+      }
+
+      function buildDots() {
+        dotsWrap.innerHTML = '';
+        slides.forEach((_, i) => {
+          const dot = document.createElement('span');
+          dot.className = 'dot';
+          dot.title = `Go to slide ${i + 1}`;
+          dot.onclick = () => currentSlide(i + 1);
+          dotsWrap.appendChild(dot);
+        });
+      }
+      buildDots();
+      const dots = () => Array.from(document.querySelectorAll('.dot'));
+
+      function clamp(n) {
+        if (n > slides.length) return 1;
+        if (n < 1) return slides.length;
+        return n;
+      }
+      function showSlides(n) {
+        slideIndex = clamp(n);
+        slides.forEach((s) => (s.style.display = 'none'));
+        dots().forEach((d) => d.classList.remove('active'));
+        slides[slideIndex - 1].style.display = 'flex';
+        dots()[slideIndex - 1]?.classList.add('active');
+        counter.textContent = `${slideIndex} / ${slides.length}`;
+        const pct = (slideIndex - 1) / (slides.length - 1);
+        progress.style.transform = `scaleX(${pct})`;
+      }
+      function plusSlides(n) {
+        showSlides(slideIndex + n);
+      }
+      function currentSlide(n) {
+        showSlides(n);
+      }
+
+      // Theme toggle (persist)
+      function applyTheme(mode) {
+        root.setAttribute('data-theme', mode);
+        localStorage.setItem('ts_theme', mode);
+      }
+      const savedTheme = localStorage.getItem('ts_theme');
+      if (savedTheme) applyTheme(savedTheme);
+      themeBtn.addEventListener('click', () =>
+        applyTheme(
+          root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+        )
+      );
+
+      // Fullscreen
+      fsBtn.addEventListener('click', () => {
+        const el = document.documentElement;
+        if (!document.fullscreenElement) {
+          el.requestFullscreen?.();
+        } else {
+          document.exitFullscreen?.();
+        }
+      });
+
+      // Auto-advance every 18s
+      function setAuto(on) {
+        auto = on;
+        autoBtn.classList.toggle('primary', auto);
+        if (tickInterval) clearInterval(tickInterval);
+        tickInterval = setInterval(() => {
+          ticker++;
+          setTimerUI();
+          if (auto && ticker % 18 === 0) plusSlides(1);
+        }, 1000);
+      }
+      setAuto(false);
+
+      // Controls
+      prevBtn.addEventListener('click', () => plusSlides(-1));
+      nextBtn.addEventListener('click', () => plusSlides(1));
+      autoBtn.addEventListener('click', () => setAuto(!auto));
+
+      document.addEventListener('keydown', (e) => {
+        if (['ArrowLeft', 'PageUp'].includes(e.key)) plusSlides(-1);
+        if (['ArrowRight', 'PageDown', ' '].includes(e.key)) {
+          e.preventDefault();
+          plusSlides(1);
+        }
+        if (e.key.toLowerCase() === 'd') themeBtn.click();
+        if (e.key.toLowerCase() === 'f') fsBtn.click();
+        if (e.key.toLowerCase() === 't') autoBtn.click();
+        if (e.key === 'Home') showSlides(1);
+        if (e.key === 'End') showSlides(slides.length);
+      });
+
+      // init
+      showSlides(slideIndex);
+      setTimerUI();
+    </script>
+  </body>
+</html>
